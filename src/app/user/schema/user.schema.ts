@@ -11,10 +11,10 @@ class User {
   email: string;
 
   @Prop()
-  phone: number;
+  password: string;
 
   @Prop()
-  image: string;
+  phone: number;
 
   @Prop({ default: Date.now() })
   createdAt: Date;
