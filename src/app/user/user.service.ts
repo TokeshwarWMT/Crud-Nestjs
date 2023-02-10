@@ -1,12 +1,15 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDto } from './dto/user.dto';
 import { UserInterface } from './interface/user.interface';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { response } from 'express';
 
 @Injectable()
 export class UserService {
+  jwtService: JwtService;
   constructor(@InjectModel('User') private userModel: Model<UserInterface>) {}
 
   async registerUser(userDto: UserDto) {
@@ -15,17 +18,19 @@ export class UserService {
   }
 
   async login(email: string, password: string) {
-    const user = this.userModel.findOne({ email });
-    console.log(user)
-   //  if (!user) {
-   //    return 'invalid credentials';
-   //  }
+    var user = await this.userModel.findOne({ email });
+    console.log(user._id)
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
+    }
 
-   //  if (!await bcrypt.compare(password, (await user).password)) {
-   //    return 'invalid crendentials';
-   //  }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
+    };
 
-    return user;
+    const jwt = await this.jwtService?.signAsync({id: user._id});
+    response.cookie(jwt, {httpOnly: true})
   }
 
   async getUsers() {

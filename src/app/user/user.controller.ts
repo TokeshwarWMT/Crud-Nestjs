@@ -13,24 +13,32 @@ import {
 import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private jwtService: JwtService
+  ) {}
 
   @Post('/newUser')
   @UsePipes(ValidationPipe)
   async newUser(@Res() res, @Body() userDto: UserDto) {
-    const saltOrRounds = 10;
-    userDto.password = await bcrypt.hash(userDto.password, saltOrRounds);
+    const salt = await bcrypt.genSalt(10);
+    userDto.password = await bcrypt.hash(userDto.password, salt);
     const user = await this.userService.registerUser(userDto);
-    return res.status(HttpStatus.OK).json({
+    return res.status(HttpStatus.CREATED).json({
       response: user,
     });
   }
 
   @Get('login')
-  async login(@Res() res, @Body('email') email: string, @Body('password') password: string) {
+  async login(
+    @Res() res,
+    @Body('email') email: string,
+    @Body('password') password: string,
+  ) {
     const user = await this.userService.login(email, password);
     return res.status(HttpStatus.OK).json({
       response: user,
