@@ -3,9 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   HttpStatus,
   Post,
-  Put,
   Res,
   UsePipes,
   ValidationPipe,
@@ -19,18 +19,25 @@ import { JwtService } from '@nestjs/jwt';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   @Post('/newUser')
   @UsePipes(ValidationPipe)
   async newUser(@Res() res, @Body() userDto: UserDto) {
-    const salt = await bcrypt.genSalt(10);
-    userDto.password = await bcrypt.hash(userDto.password, salt);
-    const user = await this.userService.registerUser(userDto);
-    return res.status(HttpStatus.CREATED).json({
-      response: user,
-    });
+    try {
+      const salt = await bcrypt.genSalt(10);
+      userDto.password = await bcrypt.hash(userDto.password, salt);
+      const user = await this.userService.registerUser(userDto);
+      return res.status(HttpStatus.CREATED).json({
+        response: user,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('login')
@@ -39,33 +46,61 @@ export class UserController {
     @Body('email') email: string,
     @Body('password') password: string,
   ) {
-    const user = await this.userService.login(email, password);
-    return res.status(HttpStatus.OK).json({
-      response: user,
-    });
+    try {
+      const user = await this.userService.login(email, password);
+      return res.status(HttpStatus.OK).json({
+        response: user,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('/getAllUsers')
   async getAllUsers(@Res() res) {
-    const user = await this.userService.getUsers();
-    return res.status(HttpStatus.OK).json({
-      response: user,
-    });
+    try {
+      const user = await this.userService.getUsers();
+      return res.status(HttpStatus.OK).json({
+        response: user,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('/updateUser')
   async updateUser(@Res() res, @Body() data: any) {
-    const users = await this.userService.updateUser(data);
-    return res.status(HttpStatus.OK).json({
-      response: users,
-    });
+    try {
+      const users = await this.userService.updateUser(data);
+      return res.status(HttpStatus.OK).json({
+        response: users,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete('/deleteUser')
   async deleteUser(@Res() res, @Body() data: any) {
-    const users = await this.userService.deleteUser(data);
-    return res.status(HttpStatus.OK).json({
-      response: 'User deleted!',
-    });
+    try {
+      const users = await this.userService.deleteUser(data);
+      return res.status(HttpStatus.OK).json({
+        response: 'User deleted!',
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

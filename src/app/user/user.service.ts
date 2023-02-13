@@ -1,11 +1,10 @@
-import { Body, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDto } from './dto/user.dto';
 import { UserInterface } from './interface/user.interface';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { response } from 'express';
 
 @Injectable()
 export class UserService {
@@ -19,7 +18,6 @@ export class UserService {
 
   async login(email: string, password: string) {
     var user = await this.userModel.findOne({ email });
-    console.log(user._id)
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
     }
@@ -27,10 +25,9 @@ export class UserService {
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
-    };
-
-    const jwt = await this.jwtService?.signAsync({id: user._id});
-    response.cookie(jwt, {httpOnly: true})
+    } else {
+      return user;
+    }
   }
 
   async getUsers() {
