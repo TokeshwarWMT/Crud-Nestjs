@@ -10,7 +10,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { UserDto } from './dto/user.dto';
+import { UserDto } from './app/user/dto/user.dto';
 import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
